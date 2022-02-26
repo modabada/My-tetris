@@ -4,12 +4,16 @@ using UnityEngine;
 
 
 public class Block: MonoBehaviour {
-    private double speed = 0.8;
     private double dropTime = 0;
     private readonly bool[] pushed = new bool[] {false, false, false};
+    private bool isPlace = false;
 
     private void Update() {
-        if(Time.time - dropTime > (Input.GetKey(KeyCode.DownArrow) ? 1 / speed / 12 : 1 / speed)) {
+        if(isPlace) {
+            return;
+        }
+
+        if(Time.time - dropTime > (Input.GetKey(KeyCode.DownArrow) ? 1 / GameManager.speed / 12 : 1 / GameManager.speed)) {
             MoveDown();
         }
         bool left = Input.GetKey(KeyCode.LeftArrow);
@@ -24,12 +28,16 @@ public class Block: MonoBehaviour {
         else if(rotate && !pushed[2]) {
             Rotation();
         }
+        if(transform.childCount == 0) {
+            Destroy(this);
+        }
 
         pushed[0] = left;
         pushed[1] = right;
         pushed[2] = rotate;
     }
 
+    #region 블럭 이동, 회전
     private bool VaildMove() {
         foreach(Transform child in transform) {
             int x = (int) child.position.x;
@@ -43,11 +51,13 @@ public class Block: MonoBehaviour {
         }
         return true;
     }
-
     private void MoveDown() {
         transform.position += new Vector3(0, -1, 0);
         if(!VaildMove()) {
             transform.position += new Vector3(0, 1, 0);
+            PlaceBlock();
+            ClearLine();
+            isPlace = true;
         }
         dropTime = Time.time;
     }
@@ -69,4 +79,43 @@ public class Block: MonoBehaviour {
             transform.Rotate(0, 0, -90);
         }
     }
+    #endregion
+
+    #region 블럭 시스템
+    private void PlaceBlock() {
+        foreach(Transform child in transform) {
+            GameManager.board[(int) child.position.x, (int) child.position.y] = child;
+        }
+    }
+
+    private void ClearLine() {
+        HashSet<int> posY = new HashSet<int>();
+        foreach(Transform child in transform) {
+            posY.Add((int) child.position.y);
+        }
+        foreach(int y in posY) {
+            if(!HasEmpty(y)) {
+                DeleteLine(y);
+            }
+        }
+    }
+    private bool HasEmpty(int y) {
+        for(int x = 0; x < GameManager.width; x++) {
+            if(GameManager.board[x, y] == null) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void DeleteLine(int y) {
+        for(int x = 0; x < GameManager.width; x++) {
+            Destroy(GameManager.board[x, y]);
+            for(int d_y = y + 1; d_y < GameManager.height; d_y++) {
+                GameManager.board[x, d_y - 1] = GameManager.board[x, d_y];
+                GameManager.board[x, d_y - 1].transform.position += new Vector3(0, -1, 0);
+            }
+        }
+    }
+    #endregion
 }
