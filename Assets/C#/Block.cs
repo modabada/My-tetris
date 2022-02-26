@@ -4,22 +4,30 @@ using UnityEngine;
 
 
 public class Block: MonoBehaviour {
-    private int speed = 1;
-    private double[] prevTime = new double[3];
+    private double speed = 0.8;
+    private double dropTime = 0;
+    private readonly bool[] pushed = new bool[] {false, false, false};
 
-    private void FixedUpdate() {
-        if(Time.time - prevTime[0] > (Input.GetKey(KeyCode.DownArrow) ? 1 / speed * 14 : 1 / speed)) {
+    private void Update() {
+        if(Time.time - dropTime > (Input.GetKey(KeyCode.DownArrow) ? 1 / speed / 12 : 1 / speed)) {
             MoveDown();
         }
-        if(Input.GetKeyDown(KeyCode.LeftArrow)) {
+        bool left = Input.GetKey(KeyCode.LeftArrow);
+        bool right = Input.GetKey(KeyCode.RightArrow);
+        bool rotate = Input.GetKey(KeyCode.UpArrow);
+        if(left && !pushed[0]) {
             MoveLeft();
         }
-        else if(Input.GetKeyDown(KeyCode.RightArrow)) {
+        else if(right && !pushed[1]) {
             MoveRight();
         }
-        else if(Input.GetKeyDown(KeyCode.UpArrow)) {
+        else if(rotate && !pushed[2]) {
             Rotation();
         }
+
+        pushed[0] = left;
+        pushed[1] = right;
+        pushed[2] = rotate;
     }
 
     private bool VaildMove() {
@@ -41,23 +49,24 @@ public class Block: MonoBehaviour {
         if(!VaildMove()) {
             transform.position += new Vector3(0, 1, 0);
         }
-        prevTime[0] = Time.time;
+        dropTime = Time.time;
     }
     private void MoveLeft() {
         transform.position += new Vector3(-1, 0, 0);
         if(!VaildMove()) {
             transform.position += new Vector3(1, 0, 0);
         }
-        prevTime[1] = Time.time;
     }
     private void MoveRight() {
         transform.position += new Vector3(1, 0, 0);
         if(!VaildMove()) {
             transform.position += new Vector3(-1, 0, 0);
         }
-        prevTime[2] = Time.time;
     }
     private void Rotation() {
-        transform.transform.rotation = Quaternion.identity;
+        transform.Rotate(0, 0, 90);
+        if(!VaildMove()) {
+            transform.Rotate(0, 0, -90);
+        }
     }
 }
