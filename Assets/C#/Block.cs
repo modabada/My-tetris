@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class Block: MonoBehaviour {
     private double dropTime = 0;
-    private readonly bool[] pushed = new bool[] {false, false, false};
+    private readonly bool[] pushed = new bool[] { false, false, false };
     private bool isPlace = false;
 
     private void Update() {
