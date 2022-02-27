@@ -7,9 +7,11 @@ public class Block: MonoBehaviour {
     private double dropTime = 0;
     private readonly bool[] pushed = new bool[] { false, false, false };
     private bool isPlace = false;
-
     private void Update() {
         if(isPlace) {
+            if(transform.childCount == 0) {
+                Destroy(gameObject);
+            }
             return;
         }
 
@@ -28,9 +30,6 @@ public class Block: MonoBehaviour {
         else if(rotate && !pushed[2]) {
             Rotation();
         }
-        if(transform.childCount == 0) {
-            Destroy(this);
-        }
 
         pushed[0] = left;
         pushed[1] = right;
@@ -40,8 +39,8 @@ public class Block: MonoBehaviour {
     #region 블럭 이동, 회전
     private bool VaildMove() {
         foreach(Transform child in transform) {
-            int x = (int) child.position.x;
-            int y = (int) child.position.y;
+            int x = Mathf.RoundToInt(child.position.x);
+            int y = Mathf.RoundToInt(child.position.y);
             if(x < 0 || x >= GameManager.width || y < 0 || y >= GameManager.height) {
                 return false;
             }
@@ -84,18 +83,29 @@ public class Block: MonoBehaviour {
     #region 블럭 시스템
     private void PlaceBlock() {
         foreach(Transform child in transform) {
-            GameManager.board[(int) child.position.x, (int) child.position.y] = child;
+            GameManager.board[Mathf.RoundToInt(child.position.x), Mathf.RoundToInt(child.position.y)] = child;
         }
+        string s = "";
+        for(int y = GameManager.height - 1; y >= 0; y--) {
+            for(int x = 0; x < GameManager.width; x++) {
+                if(GameManager.board[x, y] != null) {
+                    s += "O ";
+                }
+                else {
+                    s += "X ";
+                }
+            }
+            s += "\n";
+        }
+        Debug.Log(s);
     }
 
     private void ClearLine() {
-        HashSet<int> posY = new HashSet<int>();
         foreach(Transform child in transform) {
-            posY.Add((int) child.position.y);
-        }
-        foreach(int y in posY) {
+            int y = Mathf.RoundToInt(child.position.y);
             if(!HasEmpty(y)) {
                 DeleteLine(y);
+                RowDown(y);
             }
         }
     }
@@ -110,10 +120,18 @@ public class Block: MonoBehaviour {
 
     private void DeleteLine(int y) {
         for(int x = 0; x < GameManager.width; x++) {
-            Destroy(GameManager.board[x, y]);
-            for(int d_y = y + 1; d_y < GameManager.height; d_y++) {
-                GameManager.board[x, d_y - 1] = GameManager.board[x, d_y];
-                GameManager.board[x, d_y - 1].transform.position += new Vector3(0, -1, 0);
+            Destroy(GameManager.board[x, y].gameObject);
+            GameManager.board[x, y] = null;
+        }
+    }
+    private void RowDown(int y) {
+        for(int d_y = y; d_y < GameManager.height; d_y++) {
+            for(int x = 0; x < GameManager.width; x++) {
+                if(GameManager.board[x, d_y] != null) {
+                    GameManager.board[x, d_y - 1] = GameManager.board[x, d_y];
+                    GameManager.board[x, d_y] = null;
+                    GameManager.board[x, d_y - 1].transform.position += new Vector3(0, -1, 0);
+                }
             }
         }
     }
