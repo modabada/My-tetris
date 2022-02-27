@@ -5,8 +5,8 @@ using UnityEngine;
 
 public class Block: MonoBehaviour {
     private double dropTime = 0;
-    private readonly bool[] pushed = new bool[] { false, false, false };
-    private bool isPlace = false;
+    private readonly bool[] pushed = new bool[] {true, true, true, true};
+    public bool isPlace = false;
     private void Update() {
         if(isPlace) {
             if(transform.childCount == 0) {
@@ -21,6 +21,7 @@ public class Block: MonoBehaviour {
         bool left = Input.GetKey(KeyCode.LeftArrow);
         bool right = Input.GetKey(KeyCode.RightArrow);
         bool rotate = Input.GetKey(KeyCode.UpArrow);
+        bool drop = Input.GetKey(KeyCode.Space);
         if(left && !pushed[0]) {
             MoveLeft();
         }
@@ -30,10 +31,16 @@ public class Block: MonoBehaviour {
         else if(rotate && !pushed[2]) {
             Rotation();
         }
+        else if(drop && !pushed[3]) {
+            while(!isPlace) {
+                MoveDown();
+            }
+        }
 
         pushed[0] = left;
         pushed[1] = right;
         pushed[2] = rotate;
+        pushed[3] = drop;
     }
 
     #region 블럭 이동, 회전
@@ -84,20 +91,10 @@ public class Block: MonoBehaviour {
     private void PlaceBlock() {
         foreach(Transform child in transform) {
             GameManager.board[Mathf.RoundToInt(child.position.x), Mathf.RoundToInt(child.position.y)] = child;
-        }
-        string s = "";
-        for(int y = GameManager.height - 1; y >= 0; y--) {
-            for(int x = 0; x < GameManager.width; x++) {
-                if(GameManager.board[x, y] != null) {
-                    s += "O ";
-                }
-                else {
-                    s += "X ";
-                }
+            if(child.position.y > 20) {
+                Debug.Log("GameOver");
             }
-            s += "\n";
         }
-        Debug.Log(s);
     }
 
     private void ClearLine() {
