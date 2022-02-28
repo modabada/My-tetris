@@ -7,6 +7,7 @@ public class GameManager: MonoBehaviour {
     public static readonly int width = 10;
     public static readonly int height = 30;
     public static double speed = 0.8;
+    public static double score = 0;
     public static Transform[,] board = new Transform[width, height];
 
 
@@ -16,6 +17,9 @@ public class GameManager: MonoBehaviour {
 
     public void StartGame() {
         SceneManager.LoadScene(1); // Game
+    }
 
+    public static void EndGame() {
+        SceneManager.LoadScene(2);
     }
 }

@@ -92,7 +92,7 @@ public class Block: MonoBehaviour {
         foreach(Transform child in transform) {
             GameManager.board[Mathf.RoundToInt(child.position.x), Mathf.RoundToInt(child.position.y)] = child;
             if(child.position.y > 20) {
-                Debug.Log("GameOver");
+                GameManager.EndGame();
             }
         }
     }
@@ -116,6 +116,7 @@ public class Block: MonoBehaviour {
     }
 
     private void DeleteLine(int y) {
+        GameManager.score += 10 * GameManager.width;
         for(int x = 0; x < GameManager.width; x++) {
             Destroy(GameManager.board[x, y].gameObject);
             GameManager.board[x, y] = null;
